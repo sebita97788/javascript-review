@@ -1,0 +1,162 @@
+@startuml
+package "shared.domain.model" as shared {
+    class "uuid" <<utility>> {
+        + generateUuid(): string
+        + validateUuid(value: string): boolean
+    }
+
+    class ValidationError extends Error {
+    }
+
+    class Currency {
+        - #code: string
+        + code: string
+        + equals(other: Currency): boolean
+        + toString(): string
+    }
+
+    class Money {
+        - #amount: number
+        - #currency: Currency
+        + amount: number
+        + currency: Currency
+        + add(other: Money): Money
+        + multiply(multiplier: number): Money
+        + toString(): string
+        + equals(other: Money): boolean
+    }
+
+    class DateTime {
+        - #date: Date
+        + date: Date
+        + toISOString(): string
+        + toString(): string
+        + equals(other: DateTime): boolean
+    }
+}
+
+package "scm.domain.model" as scm {
+    class SupplierId {
+        - #value: string
+        + {static} generate(): SupplierId
+        + value: string
+        + equals(other: SupplierId): boolean
+        + toString(): string
+    }
+
+    class Supplier {
+        - #id: SupplierId
+        - #name: string
+        - #contactEmail: string | null
+        - #lastOrderTotalPrice: Money | null
+        + id: SupplierId
+        + name: string
+        + contactEmail: string | null
+        + lastOrderTotalPrice: Money | null
+        + changeName(newName: string): void
+        + updateEmail(newEmail: string): void
+        + recordOrder(orderTotal: Money): void
+    }
+}
+
+package "procurement.domain.model" as procurement {
+    class SupplierId {
+        - #value: string
+        + value: string
+        + equals(other: SupplierId): boolean
+        + toString(): string
+    }
+
+    class ProductId {
+        - #value: string
+        + {static} generate(): ProductId
+        + value: string
+        + equals(other: ProductId): boolean
+        + toString(): string
+    }
+
+    class PurchaseOrderId {
+        - #value: string
+        + {static} generate(): PurchaseOrderId
+        + value: string
+        + equals(other: PurchaseOrderId): boolean
+        + toString(): string
+    }
+
+    class PurchaseOrderState {
+        - #value: string
+        + value: string
+        + isDraft(): boolean
+        + toSubmittedFrom(currentState: PurchaseOrderState): PurchaseOrderState
+        + toApprovedFrom(currentState: PurchaseOrderState): PurchaseOrderState
+        + toShippedFrom(currentState: PurchaseOrderState): PurchaseOrderState
+        + toCompletedFrom(currentState: PurchaseOrderState): PurchaseOrderState
+        + toCanceledFrom(currentState: PurchaseOrderState): PurchaseOrderState
+        + equals(other: PurchaseOrderState): boolean
+    }
+
+    class PurchaseOrderItem {
+        - #orderId: PurchaseOrderId
+        - #productId: ProductId
+        - #quantity: number
+        - #unitPrice: Money
+        + orderId: PurchaseOrderId
+        + productId: ProductId
+        + quantity: number
+        + unitPrice: Money
+        + calculateSubtotal(): Money
+        + equals(other: PurchaseOrderItem): boolean
+    }
+
+    class PurchaseOrder {
+        - #id: PurchaseOrderId
+        - #supplierId: SupplierId
+        - #currency: Currency
+        - #orderDate: DateTime
+        - #items: PurchaseOrderItem[]
+        - #state: PurchaseOrderState
+        + id: PurchaseOrderId
+        + supplierId: SupplierId
+        + currency: Currency
+        + orderDate: DateTime
+        + items: ReadonlyArray<PurchaseOrderItem>
+        + state: string
+        + addItem(productId: ProductId, quantity: number, unitPrice: Money): void
+        + calculateTotalPrice(): Money
+        + submit(): void
+        + approve(): void
+        + ship(): void
+        + complete(): void
+        + cancel(): void
+    }
+}
+
+Supplier "1" *-- "1" scm.SupplierId
+Supplier "1" -- "0..1" Money : lastOrderTotalPrice
+PurchaseOrder "1" *-- "1" PurchaseOrderId
+PurchaseOrder "1" *-- "1" procurement.SupplierId
+PurchaseOrder "1" *-- "1" PurchaseOrderState
+PurchaseOrder "1" *-- "0..*" PurchaseOrderItem
+PurchaseOrder "1" -- "1" Currency
+PurchaseOrder "1" -- "1" DateTime
+PurchaseOrderItem "1" -- "1" ProductId
+PurchaseOrderItem "1" -- "1" Money
+Money "1" -- "1" Currency
+scm.SupplierId ..> shared.uuid
+procurement.ProductId ..> shared.uuid
+procurement.PurchaseOrderId ..> shared.uuid
+
+note as N1
+  There are two SupplierId classes, one per context.
+  scm.SupplierId is the supplier's own identity, with a generate() factory.
+  procurement.SupplierId is Procurement's own copy of the identifier it
+  agrees on with SCM, with no factory: a purchase order is always raised
+  against a supplier that already exists. Neither context imports the other's type.
+end note
+
+note as N2
+  PurchaseOrderState values: Draft, Submitted, Approved, Shipped, Completed, Canceled.
+  Draft -> Submitted -> Approved -> Shipped -> Completed; any state but Completed can be Canceled.
+end note
+
+@enduml
