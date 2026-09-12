@@ -8,7 +8,7 @@ import { Money } from '../../../shared/domain/model/money.js';
 import { PurchaseOrderItem } from './purchase-order-item.js';
 
 export class PurchaseOrder {
-    #MAX_ITEMS = 50;
+    static #MAX_ITEMS = 50;
     #id;
     #supplierId;
     #currency;
