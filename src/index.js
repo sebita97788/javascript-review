@@ -39,3 +39,11 @@ order.addItem({
     unitPrice: new Money({ amount: 22.99, currency: usd }),
 });
 console.log(`Items added: ${order.items.length}`);
+
+const total = order.calculateTotalPrice();
+supplier.recordOrder(total);
+console.log(
+  `Purchase order ${order.id} - Supplier: ${supplier.name} (${supplier.id.value}), ` +
+    `Ordered at: ${order.orderDate.toString()}, State: ${order.state}, ` +
+    `Items: ${order.items.length}, Total: ${total.toString()}`
+);
