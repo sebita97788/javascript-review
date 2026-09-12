@@ -29,6 +29,26 @@ export class PurchaseOrder {
         this.#state = new PurchaseOrderState(); // Initial state: Draft
     }
 
+    addItem({ productId, quantity, unitPrice }) {
+        if (!this.#state.isDraft()) {
+            throw new ValidationError('Items can only be added to a PurchaseOrder in Draft state');
+        }
+        if (this.#items.length >= PurchaseOrder.#MAX_ITEMS) {
+            throw new ValidationError(
+              `PurchaseOrder cannot have more than ${PurchaseOrder.#MAX_ITEMS} items`
+            );
+        }
+        if (!(unitPrice instanceof Money)) {
+            throw new ValidationError('Unit price must be a valid Money object');
+        }
+        if (!unitPrice.currency.equals(this.#currency)) {
+            throw new ValidationError(
+              `Currency mismatch: expected ${this.#currency.code}, but got ${unitPrice.currency.code}`
+            );
+        }
+        this.#items.push(new PurchaseOrderItem({ orderId: this.#id, productId, quantity, unitPrice }));
+    }
+
     get id() {
         return this.#id;
     }
