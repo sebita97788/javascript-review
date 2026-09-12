@@ -4,6 +4,8 @@ import { SupplierId as ProcurementSupplierId } from './procurement/domain/model/
 import {Currency} from "./shared/domain/model/currency.js";
 import {PurchaseOrder} from "./procurement/domain/model/purchase-order.js";
 import {DateTime} from "./shared/domain/model/date-time.js";
+import { ProductId } from './procurement/domain/model/product-id.js';
+import { Money } from './shared/domain/model/money.js';
 
 // Register a supplier in the SCM context.
 const supplier = new Supplier({
@@ -25,3 +27,15 @@ console.log(
     `Purchase order ${order.id} - Supplier: ${supplier.name} (${supplier.id.value}), ` +
     `Ordered at: ${order.orderDate.toString()}, State: ${order.state}`
 );
+
+order.addItem({
+    productId: ProductId.generate(),
+    quantity: 5,
+    unitPrice: new Money({ amount: 45.99, currency: usd }),
+});
+order.addItem({
+    productId: ProductId.generate(),
+    quantity: 10,
+    unitPrice: new Money({ amount: 22.99, currency: usd }),
+});
+console.log(`Items added: ${order.items.length}`);
