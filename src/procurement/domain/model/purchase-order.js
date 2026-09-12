@@ -51,6 +51,16 @@ export class PurchaseOrder {
         this.#items.push(new PurchaseOrderItem({ orderId: this.#id, productId, quantity, unitPrice }));
     }
 
+    calculateTotalPrice() {
+        if (this.#items.length === 0) {
+            throw new ValidationError('Cannot calculate total price for an empty purchase order');
+        }
+        return this.#items.reduce(
+          (sum, item) => sum.add(item.calculateSubtotal()),
+          new Money({ amount: 0, currency: this.#currency })
+        );
+    }
+
     get id() {
         return this.#id;
     }
