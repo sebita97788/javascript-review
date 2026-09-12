@@ -4,6 +4,8 @@ import { DateTime } from '../../../shared/domain/model/date-time.js';
 import { ValidationError } from '../../../shared/domain/model/errors.js';
 import { PurchaseOrderState } from './purchase-order-state.js';
 import { Currency } from '../../../shared/domain/model/currency.js';
+import { Money } from '../../../shared/domain/model/money.js';
+import { PurchaseOrderItem } from './purchase-order-item.js';
 
 export class PurchaseOrder {
     #MAX_ITEMS = 50;
