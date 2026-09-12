@@ -4,9 +4,11 @@ import { DateTime } from '../../../shared/domain/model/date-time.js';
 import { ValidationError } from '../../../shared/domain/model/errors.js';
 import { PurchaseOrderState } from './purchase-order-state.js';
 import { Currency } from '../../../shared/domain/model/currency.js';
+import { Money } from '../../../shared/domain/model/money.js';
+import { PurchaseOrderItem } from './purchase-order-item.js';
 
 export class PurchaseOrder {
-    #MAX_ITEMS = 50;
+    static #MAX_ITEMS = 50;
     #id;
     #supplierId;
     #currency;
@@ -27,6 +29,26 @@ export class PurchaseOrder {
         this.#orderDate = orderDate instanceof DateTime ? orderDate : new DateTime();
         this.#items = [];
         this.#state = new PurchaseOrderState(); // Initial state: Draft
+    }
+
+    addItem({ productId, quantity, unitPrice }) {
+        if (!this.#state.isDraft()) {
+            throw new ValidationError('Items can only be added to a PurchaseOrder in Draft state');
+        }
+        if (this.#items.length >= PurchaseOrder.#MAX_ITEMS) {
+            throw new ValidationError(
+              `PurchaseOrder cannot have more than ${PurchaseOrder.#MAX_ITEMS} items`
+            );
+        }
+        if (!(unitPrice instanceof Money)) {
+            throw new ValidationError('Unit price must be a valid Money object');
+        }
+        if (!unitPrice.currency.equals(this.#currency)) {
+            throw new ValidationError(
+              `Currency mismatch: expected ${this.#currency.code}, but got ${unitPrice.currency.code}`
+            );
+        }
+        this.#items.push(new PurchaseOrderItem({ orderId: this.#id, productId, quantity, unitPrice }));
     }
 
     get id() {
