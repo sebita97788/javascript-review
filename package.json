@@ -1,6 +1,6 @@
 {
   "name": "javascript-review",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A sample JavaScript project demonstrating Object-Oriented Programming (OOP) and Domain-Driven Design (DDD) concepts in a Supply Chain and Procurement context.",
   "main": "src/index.js",
   "type": "module",
