@@ -25,6 +25,13 @@ export class PurchaseOrderState {
         }
     }
 
+  toCanceledFrom(currentState) {
+    if (currentState.value === PurchaseOrderState.#VALID_STATES.COMPLETED) {
+      throw new ValidationError('PurchaseOrder cannot be canceled once Completed');
+    }
+    return new PurchaseOrderState(PurchaseOrderState.#VALID_STATES.CANCELED);
+  }
+
     get value() {
         return this.#value;
     }

@@ -61,6 +61,10 @@ export class PurchaseOrder {
         );
     }
 
+    cancel() {
+        this.#state = this.#state.toCanceledFrom(this.#state);
+    }
+
     get id() {
         return this.#id;
     }
